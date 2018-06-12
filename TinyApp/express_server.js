@@ -1,3 +1,14 @@
+function generateRandomString() {
+  var randomString = "";
+  var possibleCharacters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789";
+
+  for(var i = 0; i < 6; i++) {
+    randomString += possibleCharacters.charAt(Math.floor(Math.random() * possibleCharacters.length));
+  }
+  return randomString;
+}
+generateRandomString();
+
 var express = require("express");
 var app = express();
 var PORT = 8080;
@@ -43,7 +54,7 @@ app.get("/urls/:id", (request, response) => {
   response.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
+app.post("/urls", (request, response) => {
   console.log(req.body);
   res.send("Ok");
 });
