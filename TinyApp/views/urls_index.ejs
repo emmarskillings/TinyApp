@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TinyApp</title>
+</head>
+
+<%- include partials/_header.ejs %>
+
+<body>
+
+  <div class="container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Shortened URL</th>
+          <th>Full URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(const shortURL in urls) { %>
+        <tr>
+          <td><%= shortURL %></td>
+          <td><%= urls[shortURL] %></td>
+        </tr>
+        <% }; %>
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    <button type="button">URL Shortener</button>
+  </div>
+
+</body>
+
+</html>
