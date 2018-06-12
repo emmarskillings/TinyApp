@@ -54,8 +54,8 @@ app.get("/urls/:id", (request, response) => {
 });
 
 app.get("/u/:shortURL", (request, response) => {
-  let longURL =
-  res.redirect(longURL);
+  let longURL = urlDatabase[request.params.shortURL];
+  response.redirect(longURL);
 });
 
 app.post("/urls", (request, response) => {
@@ -64,8 +64,6 @@ app.post("/urls", (request, response) => {
   response.redirect("/urls/" + randomString);
   urlDatabase[randomString]=newLongUrl;
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
