@@ -8,19 +8,16 @@ function generateRandomString() {
   return randomString;
 }
 
-// const findURL = id => {
-//   const url = urlDatabase.filter(url === id)[0];
-//   return url;
-// };
-// console.log(findURL("b2xVn2"));
-
 var express = require("express");
 var app = express();
 var PORT = 8080;
 
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser")
 
 app.use(bodyParser.urlencoded({extended: true}));
+
+app.use(cookieParser())
 
 app.set("view engine", "ejs");
 
@@ -42,17 +39,26 @@ app.get("/hello", (request, response) => {
 });
 
 app.get("/urls", (request, response) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars =
+    {
+      username: request.cookies["username"],
+      urls: urlDatabase
+    }
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (request, response) => {
+  let templateVars =
+    {
+     username: request.cookies["username"]
+    }
   response .render("urls_new");
 });
 
 app.get("/urls/:id", (request, response) => {
   let templateVars =
     {
+      username: request.cookies["username"],
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id]
     }
@@ -64,9 +70,11 @@ app.get("/u/:shortURL", (request, response) => {
   response.redirect(longURL);
 });
 
-// app.post("/login", (request, response) => {
-//   response.redirect("/urls");
-// })
+app.post("/login", (request, response) => {
+  response.cookie("username", request.body["username"]);
+  console.log(request.body);
+  response.redirect("/urls");
+});
 
 app.post("/urls", (request, response) => {
   var newLongURL = request.body.longURL;
