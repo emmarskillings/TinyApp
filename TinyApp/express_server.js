@@ -64,6 +64,10 @@ app.get("/u/:shortURL", (request, response) => {
   response.redirect(longURL);
 });
 
+// app.post("/login", (request, response) => {
+//   response.redirect("/urls");
+// })
+
 app.post("/urls", (request, response) => {
   var newLongURL = request.body.longURL;
   var randomString = generateRandomString();
