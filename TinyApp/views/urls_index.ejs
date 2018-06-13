@@ -9,6 +9,10 @@
 
 <body>
 
+  <div>
+    <button type="button">URL Shortener</button>
+  </div>
+
   <div class="container">
     <table class="table">
       <thead>
@@ -22,14 +26,13 @@
         <tr>
           <td><%= shortURL %></td>
           <td><%= urls[shortURL] %></td>
+          <form method="POST" action="urls/<%= shortURL %>/delete">
+            <td><input type="submit" value="Delete" /></td>
+          </form>
         </tr>
         <% }; %>
       </tbody>
     </table>
-  </div>
-
-  <div>
-    <button type="button">URL Shortener</button>
   </div>
 
 </body>

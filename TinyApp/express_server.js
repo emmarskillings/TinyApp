@@ -8,6 +8,12 @@ function generateRandomString() {
   return randomString;
 }
 
+// const findURL = id => {
+//   const url = urlDatabase.filter(url === id)[0];
+//   return url;
+// };
+// console.log(findURL("b2xVn2"));
+
 var express = require("express");
 var app = express();
 var PORT = 8080;
@@ -40,8 +46,8 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+app.get("/urls/new", (request, response) => {
+  response .render("urls_new");
 });
 
 app.get("/urls/:id", (request, response) => {
@@ -64,6 +70,12 @@ app.post("/urls", (request, response) => {
   response.redirect("/urls/" + randomString);
   urlDatabase[randomString]=newLongUrl;
 });
+
+app.post("/urls/:id/delete", (request, response) => {
+  let URLtoDelete = request.params.id;
+  delete urlDatabase[URLtoDelete];
+  response.redirect("/urls")
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
