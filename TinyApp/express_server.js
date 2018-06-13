@@ -65,11 +65,22 @@ app.get("/u/:shortURL", (request, response) => {
 });
 
 app.post("/urls", (request, response) => {
-  var newLongUrl = request.body.longURL;
+  var newLongURL = request.body.longURL;
   var randomString = generateRandomString();
   response.redirect("/urls/" + randomString);
-  urlDatabase[randomString]=newLongUrl;
+  urlDatabase[randomString]=newLongURL;
 });
+
+app.post("/urls/:id/update", (request, response) => {
+  var updateURL = request.body.updateURL
+  response.redirect("/urls");
+  urlDatabase[request.params.id]=updateURL;
+})
+
+app.post("/urls/:id/edit", (request, response) => {
+  let shortURL = request.params.id;
+  response.redirect("/urls/" + shortURL)
+})
 
 app.post("/urls/:id/delete", (request, response) => {
   let URLtoDelete = request.params.id;
