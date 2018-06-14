@@ -2,18 +2,10 @@
 <html lang="en">
 
 <header>
-  <% if(username === undefined) { %>
-  <form action="/login" id="login" method="POST" style="margin:150px;">
-    <label for="username">Name:</label>
-    <input placeholder="Username" type="text" name="username" style="width: 300px">
-    <input type="submit" id="Login">
-  </form>
-  <% } else { %>
-    <form action="/logout" id="logout" method="POST" style="margin:150px;">
-      <label for="username"><%= username %></label>
-      <input type="submit" id="Logout">
-    </form>
-  <% } %>
+  <a href="/register">Register</a>
+  <a href="/login">Login</a>
+  <a href="/login">Logout</a>
 </header>
+
 
 </html>
