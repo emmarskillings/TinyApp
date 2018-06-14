@@ -34,7 +34,6 @@ const users = {
   }
 }
 
-
 function findExistingUserEmail(email) {
   let existingEmail = '';
   let keys = Object.keys(users);
@@ -46,18 +45,27 @@ function findExistingUserEmail(email) {
   return existingEmail;
 }
 
-
+function findExistingUserPassword(password) {
+  let existingPassword = '';
+  let keys = Object.keys(users);
+  for (i = 0; i < keys.length; i++) {
+    if (password === users[keys[i]]["password"]) {
+      existingPassword += users[keys[i]]["password"];
+    }
+  }
+  return existingPassword;
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
+// GET requests
+
 app.get("/", (request, response) => {
   response.end("Hello!");
 });
-
-// GET requests
 
 app.get("/urls.json", (request, response) => {
   response.json(urlDatabase);
@@ -114,30 +122,42 @@ app.get("/u/:shortURL", (request, response) => {
 // POST requests
 
 app.post("/register", (request, response) => {
-  var newUserID = generateRandomString();
-  var newUserEmail = request.body["email"];
-  var newUserPassword = request.body["password"];
-  var existingUserEmail = findExistingUserEmail(newUserEmail);
+  let newUserID = generateRandomString();
+  let newUserEmail = request.body["email"];
+  let newUserPassword = request.body["password"];
+  let existingUserEmail = findExistingUserEmail(newUserEmail);
 
   if (existingUserEmail == newUserEmail) {
-    response.status(404).render("fourohfour");
+    response.status(400).render("userExists");
   } else if (newUserEmail && newUserPassword) {
-    response.redirect("/urls");
     users[newUserID] = {id: newUserID, email: newUserEmail, password: newUserPassword};
+    response.cookie("user_id", newUserID);
+    response.redirect("/urls");
   } else {
-    response.status(404).render("404");
+    response.status(400).render("missingEmailorPassword");
   }
-  response.cookie("user_id", newUserID);
+  console.log(users);
+
 });
 
 app.post("/login", (request, response) => {
-  response.cookie("user_id", user_id);
-  response.redirect("/urls");
+  let userEmail = request.body["email"];
+  let userPassword = request.body["password"];
+  let existingUserEmail = findExistingUserEmail(userEmail);
+  let existingUserPassword = findExistingUserPassword(userPassword);
+
+  if (existingUserEmail == userEmail && existingUserPassword == userPassword) {
+    response.cookie("user_id", userEmail);
+    response.redirect("/urls");
+  }
+  else {
+    response.status(403).render("tryAgain");
+  }
 });
 
 app.post("/logout", (request, response) => {
   response.clearCookie("user_id");
-  response.redirect("/urls");
+  response.redirect("/login");
 })
 
 app.post("/urls", (request, response) => {
