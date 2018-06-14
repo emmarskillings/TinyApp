@@ -97,11 +97,16 @@ app.get("/login", (request, response) => {
 })
 
 app.get("/urls/new", (request, response) => {
-  let templateVars =
+  if (users[request.cookies.user_id]) {
+    let templateVars =
     {
      user: users[request.cookies.user_id]
     }
-  response.render("urls_new", templateVars);
+    response.render("urls_new", templateVars);
+  } else {
+    response.redirect("/login");
+  }
+
 });
 
 app.get("/urls/:id", (request, response) => {
@@ -166,6 +171,20 @@ app.post("/urls", (request, response) => {
   response.redirect("/urls/" + randomString);
   urlDatabase[randomString] = newLongURL;
 });
+
+app.post("/urls/new", (request,response) => {
+  let userEmail = request.body["email"];
+  let userPassword = request.body["password"];
+  let existingUserEmail = findExistingUserEmail(userEmail);
+  let existingUserPassword = findExistingUserPassword(userPassword);
+
+  if (existingUserEmail == userEmail && existingUserPassword == userPassword) {
+    response.redirect("/urls/new");
+  }
+  else {
+    response.redirect("/login");
+  }
+})
 
 app.post("/urls/:id/update", (request, response) => {
   var updateURL = request.body.updateURL
