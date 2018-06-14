@@ -2,18 +2,23 @@
 <html lang="en">
 
 <header>
-  <% if(username === undefined) { %>
+  <a href="/register">Register</a>
+  <a href="/login">Login</a>
+</header>
+
+<!-- <header>
+  <% if(user === undefined) { %>
   <form action="/login" id="login" method="POST" style="margin:150px;">
-    <label for="username">Name:</label>
-    <input placeholder="Username" type="text" name="username" style="width: 300px">
+    <label for="email">Name:</label>
+    <input placeholder="Email" type="text" name="email" style="width: 300px">
     <input type="submit" id="Login">
   </form>
   <% } else { %>
     <form action="/logout" id="logout" method="POST" style="margin:150px;">
-      <label for="username"><%= username %></label>
+      <label for="email"><%= email %></label>
       <input type="submit" id="Logout">
     </form>
   <% } %>
-</header>
+</header> -->
 
 </html>

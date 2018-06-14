@@ -24,7 +24,7 @@ function generateRandomString() {
 const users = {
   "userRandomID": {
     id: "userRandomID",
-    email: "user@example.com",
+    email: "user1@example.com",
     password: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
@@ -33,6 +33,20 @@ const users = {
     password: "dishwasher-funk"
   }
 }
+
+
+function findExistingUserEmail(email) {
+  let existingEmail = '';
+  let keys = Object.keys(users);
+  for (i = 0; i < keys.length; i++) {
+    if (email === users[keys[i]]['email']) {
+      existingEmail += users[keys[i]]['email'];
+    }
+  }
+  return existingEmail;
+}
+
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -56,7 +70,7 @@ app.get("/hello", (request, response) => {
 app.get("/urls", (request, response) => {
   let templateVars =
     {
-      username: request.cookies["username"],
+      user: users[request.cookies.user_id],
       urls: urlDatabase
     }
   response.render("urls_index", templateVars);
@@ -70,18 +84,22 @@ app.get("/register", (request, response) => {
   response.render("urls_register", templateVars);
 });
 
+app.get("/login", (request, response) => {
+  response.render("urls_login")
+})
+
 app.get("/urls/new", (request, response) => {
   let templateVars =
     {
-     username: request.cookies["username"]
+     user: users[request.cookies.user_id]
     }
-  response .render("urls_new", templateVars);
+  response.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (request, response) => {
   let templateVars =
     {
-      username: request.cookies["username"],
+      user: users[request.cookies.user_id],
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id]
     }
@@ -99,22 +117,26 @@ app.post("/register", (request, response) => {
   var newUserID = generateRandomString();
   var newUserEmail = request.body["email"];
   var newUserPassword = request.body["password"];
-  if (newUserEmail && newUserPassword) {
-    response.cookie("user_id", newUserID);
+  var existingUserEmail = findExistingUserEmail(newUserEmail);
+
+  if (existingUserEmail == newUserEmail) {
+    response.status(404).render("fourohfour");
+  } else if (newUserEmail && newUserPassword) {
     response.redirect("/urls");
     users[newUserID] = {id: newUserID, email: newUserEmail, password: newUserPassword};
   } else {
     response.status(404).render("404");
   }
-})
+  response.cookie("user_id", newUserID);
+});
 
 app.post("/login", (request, response) => {
-  response.cookie("username", request.body["username"]);
+  response.cookie("user_id", user_id);
   response.redirect("/urls");
 });
 
 app.post("/logout", (request, response) => {
-  response.clearCookie("username");
+  response.clearCookie("user_id");
   response.redirect("/urls");
 })
 
