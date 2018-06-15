@@ -10,7 +10,7 @@
 <body>
 
   <div>
-    <button type="button">URL Shortener</button>
+    <a href="/urls/new">URL Shortener</a>
   </div>
 
   <div class="container">
@@ -25,11 +25,11 @@
         <% for(const shortURL in urls) { %>
         <tr>
           <td><%= shortURL %></td>
-          <td><%= urls[shortURL] %></td>
-          <form action="/urls/<%= shortURL %>/edit" method="POST">
+          <td><%= urls[shortURL]["longURL"] %></td>
+          <form action="/urls/<%= shortURL %>/edit" method="GET">
             <td><input type="submit" value="Edit" /></td>
           </form>
-          <form method="POST" action="urls/<%= shortURL %>/delete">
+          <form method="GET" action="urls/<%= shortURL %>/delete">
             <td><input type="submit" value="Delete" /></td>
           </form>
         </tr>

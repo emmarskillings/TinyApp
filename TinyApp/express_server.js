@@ -34,6 +34,14 @@ const users = {
   }
 }
 
+function emailToId(email) {
+  for (let id in users) {
+    if (users[id].email === email) {
+      return id;
+    }
+  }
+}
+
 function findExistingUserEmail(email) {
   let existingEmail = '';
   let keys = Object.keys(users);
@@ -57,8 +65,14 @@ function findExistingUserPassword(password) {
 }
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "userRandomID"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "user2RandomID"
+  }
 };
 
 // GET requests
@@ -78,7 +92,7 @@ app.get("/hello", (request, response) => {
 app.get("/urls", (request, response) => {
   let templateVars =
     {
-      user: users[request.cookies.user_id],
+      user: users[request.cookies["user_id"]],
       urls: urlDatabase
     }
   response.render("urls_index", templateVars);
@@ -93,31 +107,42 @@ app.get("/register", (request, response) => {
 });
 
 app.get("/login", (request, response) => {
-  response.render("urls_login")
+  let templateVars =
+    {
+      user: users[request.cookies["user_id"]]
+    }
+  response.render("urls_login", templateVars)
 })
 
 app.get("/urls/new", (request, response) => {
-  if (users[request.cookies.user_id]) {
+  if (request.cookies["user_id"]) {
     let templateVars =
     {
-     user: users[request.cookies.user_id]
+     user: users[request.cookies["user_id"]]
     }
     response.render("urls_new", templateVars);
   } else {
     response.redirect("/login");
   }
-
 });
 
-app.get("/urls/:id", (request, response) => {
-  let templateVars =
+app.get("/urls/:id/edit", (request, response) => {
+  let shortURL = request.params.id;
+  if (request.cookies["user_id"] === urlDatabase[shortURL]["userID"]) {
+    response.render("urls_show", templateVars =
     {
-      user: users[request.cookies.user_id],
+      user: users[request.cookies["user_id"]],
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id]
-    }
-  response.render("urls_show", templateVars);
+    });
+  } else {
+    response.redirect("/urls")
+  }
 });
+
+// app.get("/urls/:shortURL/edit", (request, response) => {
+
+// });
 
 app.get("/u/:shortURL", (request, response) => {
   let longURL = urlDatabase[request.params.shortURL];
@@ -142,7 +167,6 @@ app.post("/register", (request, response) => {
     response.status(400).render("missingEmailorPassword");
   }
   console.log(users);
-
 });
 
 app.post("/login", (request, response) => {
@@ -150,9 +174,11 @@ app.post("/login", (request, response) => {
   let userPassword = request.body["password"];
   let existingUserEmail = findExistingUserEmail(userEmail);
   let existingUserPassword = findExistingUserPassword(userPassword);
+  let userid = emailToId(userEmail);
 
   if (existingUserEmail == userEmail && existingUserPassword == userPassword) {
-    response.cookie("user_id", userEmail);
+    response.cookie("user_id", userid);
+    console.log(userid)
     response.redirect("/urls");
   }
   else {
@@ -168,8 +194,9 @@ app.post("/logout", (request, response) => {
 app.post("/urls", (request, response) => {
   var newLongURL = request.body.longURL;
   var randomString = generateRandomString();
-  response.redirect("/urls/" + randomString);
-  urlDatabase[randomString] = newLongURL;
+  urlDatabase[randomString] = {longURL: newLongURL, userID: request.cookies["user_id"]};
+  response.redirect("/urls");
+  console.log(urlDatabase);
 });
 
 app.post("/urls/new", (request,response) => {
@@ -188,20 +215,25 @@ app.post("/urls/new", (request,response) => {
 
 app.post("/urls/:id/update", (request, response) => {
   var updateURL = request.body.updateURL
+  urlDatabase[request.params.id]["longURL"] = updateURL;
   response.redirect("/urls");
-  urlDatabase[request.params.id]=updateURL;
+  console.log(updateURL)
 })
 
-app.post("/urls/:id/edit", (request, response) => {
-  let shortURL = request.params.id;
-  response.redirect("/urls/" + shortURL)
-})
+// app.post("/urls/:id/edit", (request, response) => {
+//   let shortURL = request.params.id;
+//   // if (request.cookies[user_id] === urlDatabase[shortURL][userID]) {
+//   //   response.redirect("/urls/" + shortURL)
+//   // } else {
+//   //   response.redirect("/urls")
+//   // }
+// });
 
 app.post("/urls/:id/delete", (request, response) => {
   let URLtoDelete = request.params.id;
   delete urlDatabase[URLtoDelete];
   response.redirect("/urls")
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

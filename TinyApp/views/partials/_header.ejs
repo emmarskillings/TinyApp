@@ -4,8 +4,16 @@
   <header>
     <a href="/register">Register</a>
     <a href="/login">Login</a>
-    <a href="/login">Logout</a>
+    <% if (user) { %>
+      <form id="logout" method="POST" action="/logout">
+        <label for="logout"><%- user["email"] %></label>
+        <input type="submit" name="logout" value="logout">
+      </form>
+      <% } %>
+
   </header>
+
+
 
 
 </html>
