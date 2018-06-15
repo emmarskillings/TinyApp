@@ -26,10 +26,10 @@
         <tr>
           <td><%= shortURL %></td>
           <td><%= urls[shortURL]["longURL"] %></td>
-          <form action="/urls/<%= shortURL %>/edit" method="GET">
+          <form action="/urls/<%= shortURL %>" method="GET">
             <td><input type="submit" value="Edit" /></td>
           </form>
-          <form method="GET" action="urls/<%= shortURL %>/delete">
+          <form method="GET" action="/urls/<%= shortURL %>/delete">
             <td><input type="submit" value="Delete" /></td>
           </form>
         </tr>
