@@ -1,38 +1,35 @@
 var express = require("express");
 var app = express();
 var PORT = 8080;
+var bcrypt = require('bcryptjs');
+var bodyParser = require("body-parser");
+var cookieSession = require('cookie-session')
 
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser")
+app.use(cookieSession({
+  key: "user",
+  secret: "SECret"
+}));
 
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(cookieParser())
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 app.set("view engine", "ejs");
+
+// FUNCTIONS
+
+// generates a random 6 character string that is then used as the userID
 
 function generateRandomString() {
   var randomString = "";
   var possibleCharacters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789";
-
   for(var i = 0; i < 6; i++) {
     randomString += possibleCharacters.charAt(Math.floor(Math.random() * possibleCharacters.length));
   }
   return randomString;
 }
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user1@example.com",
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-}
+// pulls userID by locating user email in users database
 
 function emailToId(email) {
   for (let id in users) {
@@ -41,6 +38,8 @@ function emailToId(email) {
     }
   }
 }
+
+// verifies that user email exists
 
 function findExistingUserEmail(email) {
   let existingEmail = '';
@@ -53,16 +52,20 @@ function findExistingUserEmail(email) {
   return existingEmail;
 }
 
+// verifies that user password exists
+
 function findExistingUserPassword(password) {
   let existingPassword = '';
   let keys = Object.keys(users);
   for (i = 0; i < keys.length; i++) {
-    if (password === users[keys[i]]["password"]) {
+    if (bcrypt.compareSync(password, users[keys[i]]["password"])) {
       existingPassword += users[keys[i]]["password"];
     }
   }
   return existingPassword;
 }
+
+// creates a user specific array of short and long urls
 
 function urlsForUser(userID) {
   let currentUser = {};
@@ -77,6 +80,23 @@ function urlsForUser(userID) {
   }
   return currentUser;
 }
+
+// users database
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user1@example.com",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: bcrypt.hashSync("dishwasher-funk", 10)
+  }
+}
+
+// url database
 
 const urlDatabase = {
   "b2xVn2": {
@@ -103,13 +123,14 @@ app.get("/hello", (request, response) => {
   response.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/urls", (request, response) => {
+// only registered and logged in users can see the /urls page
 
-  if (request.cookies["user_id"]) {
-  let currentUserURLs = urlsForUser(request.cookies["user_id"]);
+app.get("/urls", (request, response) => {
+  if (request.session["user_id"]) {
+  let currentUserURLs = urlsForUser(request.session["user_id"]);
   let templateVars =
     {
-      user: users[request.cookies["user_id"]],
+      user: users[request.session["user_id"]],
       urls: currentUserURLs
     }
     response.render("urls_index", templateVars);
@@ -121,7 +142,7 @@ app.get("/urls", (request, response) => {
 app.get("/register", (request, response) => {
   let templateVars =
     {
-      user_id: request.cookies["newUserID"]
+      user_id: request.session["newUserID"]
     }
   response.render("urls_register", templateVars);
 });
@@ -129,16 +150,18 @@ app.get("/register", (request, response) => {
 app.get("/login", (request, response) => {
   let templateVars =
     {
-      user: users[request.cookies["user_id"]]
+      user: users[request.session["user_id"]]
     }
   response.render("urls_login", templateVars)
-})
+});
+
+// only registered and logged in users can access the /urls/new page
 
 app.get("/urls/new", (request, response) => {
-  if (request.cookies["user_id"]) {
+  if (request.session["user_id"]) {
     let templateVars =
     {
-     user: users[request.cookies["user_id"]]
+     user: users[request.session["user_id"]]
     }
     response.render("urls_new", templateVars);
   } else {
@@ -146,18 +169,16 @@ app.get("/urls/new", (request, response) => {
   }
 });
 
-
-
-// registered and logged in users can only edit shortURLs they created
+// registered and logged in users can only see and edit shortURLs they created
 
 app.get("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
-  const userID = request.cookies["user_id"];
+  const userID = request.session["user_id"];
   if (userID) {
     if (userID === urlDatabase[shortURL]["userID"]) {
       response.render("urls_show", templateVars =
       {
-        user: users[request.cookies["user_id"]],
+        user: users[request.session["user_id"]],
         shortURL: request.params.id,
         longURL: urlDatabase[request.params.id]
       });
@@ -168,24 +189,25 @@ app.get("/urls/:id", (request, response) => {
   else {
     response.redirect("/login");
   }
-
 });
 
-// registered and loggen in users can only dele shortURLs they created
+// registered and loggen in users can only delete shortURLs they created
 
 app.get("/urls/:id/delete", (request, response) => {
   let shortURL = request.params.id;
   let templateVars =
     {
-      user: users[request.cookies["user_id"]]
+      user: users[request.session["user_id"]]
     }
-  if (request.cookies["user_id"] === urlDatabase[shortURL]["userID"]) {
+  if (request.session["user_id"] === urlDatabase[shortURL]["userID"]) {
     delete urlDatabase[shortURL];
     response.redirect("/urls");
   } else{
     response.redirect("/urls")
   }
-})
+});
+
+// anyone can be redirected to longURL page by using /u/:shortURL
 
 app.get("/u/:shortURL", (request, response) => {
   let longURL = urlDatabase[request.params.shortURL]["longURL"];
@@ -203,13 +225,12 @@ app.post("/register", (request, response) => {
   if (existingUserEmail == newUserEmail) {
     response.status(400).render("userExists");
   } else if (newUserEmail && newUserPassword) {
-    users[newUserID] = {id: newUserID, email: newUserEmail, password: newUserPassword};
-    response.cookie("user_id", newUserID);
+    users[newUserID] = {id: newUserID, email: newUserEmail, password: bcrypt.hashSync(newUserPassword, 10)};
+    request.session["user_id"] = newUserID;
     response.redirect("/urls");
   } else {
     response.status(400).render("missingEmailorPassword");
   }
-  console.log(users);
 });
 
 app.post("/login", (request, response) => {
@@ -218,10 +239,8 @@ app.post("/login", (request, response) => {
   let existingUserEmail = findExistingUserEmail(userEmail);
   let existingUserPassword = findExistingUserPassword(userPassword);
   let userid = emailToId(userEmail);
-
-  if (existingUserEmail == userEmail && existingUserPassword == userPassword) {
-    response.cookie("user_id", userid);
-    console.log(userid)
+  if (existingUserEmail === userEmail && bcrypt.compareSync(userPassword, existingUserPassword)) {
+    request.session["user_id"] = userid;
     response.redirect("/urls");
   }
   else {
@@ -230,16 +249,15 @@ app.post("/login", (request, response) => {
 });
 
 app.post("/logout", (request, response) => {
-  response.clearCookie("user_id");
+  request.session = null;
   response.redirect("/login");
 })
 
 app.post("/urls", (request, response) => {
   var newLongURL = request.body.longURL;
   var randomString = generateRandomString();
-  urlDatabase[randomString] = {longURL: newLongURL, userID: request.cookies["user_id"]};
+  urlDatabase[randomString] = {longURL: newLongURL, userID: request.session["user_id"]};
   response.redirect("/urls");
-  console.log(urlDatabase);
 });
 
 app.post("/urls/new", (request,response) => {
@@ -260,8 +278,9 @@ app.post("/urls/:id", (request, response) => {
   var updateURL = request.body.updateURL
   urlDatabase[request.params.id]["longURL"] = updateURL;
   response.redirect("/urls");
-  console.log(updateURL)
 })
+
+// LISTEN
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
