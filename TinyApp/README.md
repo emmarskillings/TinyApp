@@ -4,9 +4,9 @@ BelittleMe! is a full-stack web application built with Node and Express that all
 
 ## Final Product
 
-!["/register-page"](#)
-!["/login-page"](#)
-!["/urls-page"](#)
+!["Screenshot of login page"](https://github.com/emmarskillings/TinyApp/blob/master/TinyApp/docs/:login-page.png)
+!["Screenshot of register page"](https://github.com/emmarskillings/TinyApp/blob/master/TinyApp/docs/:register-page.png)
+!["Screenshot of urls page"](https://github.com/emmarskillings/TinyApp/blob/master/TinyApp/docs/:urls-page.png)
 
 ## Dependencies
 
